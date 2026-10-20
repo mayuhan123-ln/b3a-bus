@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>B3A · Fu Tai Estate ↔ Shenzhen Bay Port</title>
+<style>
+  :root {
+    --bg: #080b11;
+    --glow: rgba(255, 214, 10, .14);
+    --card: rgba(255, 255, 255, .045);
+    --stroke: rgba(255, 255, 255, .10);
+    --text: #f4f6fa;
+    --muted: #949eb2;
+    --faint: #5f6a7e;
+    --accent: #ffd60a;
+    --accent-ink: #15171c;
+    --big: #ffd60a;
+    --ok: #3ddc97;
+    --bad: #ff6b6b;
+    --track: rgba(255, 255, 255, .10);
+    --shadow: 0 30px 80px rgba(0, 0, 0, .55);
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #eef1f6;
+      --glow: rgba(255, 214, 10, .35);
+      --card: #ffffff;
+      --stroke: rgba(10, 15, 25, .10);
+      --text: #0c111c;
+      --muted: #5a6476;
+      --faint: #8a93a4;
+      --big: #0c111c;
+      --ok: #0f9d63;
+      --bad: #d63b3b;
+      --track: rgba(10, 15, 25, .10);
+      --shadow: 0 24px 60px rgba(22, 32, 50, .14);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    margin: 0;
+    padding: clamp(20px, 4.5vw, 52px) 18px;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(900px 480px at 50% -12%, var(--glow), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", "Noto Sans TC", "PingFang HK", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    width: min(100%, 960px);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  /* ---------- header ---------- */
+
+  .head { padding: 0 4px; }
+
+  .route {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .route-no {
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1;
+    padding: 8px 12px 7px;
+    border-radius: 12px;
+  }
+
+  .route-co {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(20px, 4.4vw, 26px);
+    font-weight: 650;
+    letter-spacing: -.02em;
+    line-height: 1.3;
+  }
+
+  h1 .arrow {
+    color: var(--faint);
+    font-weight: 400;
+    padding: 0 2px;
+  }
+
+  .sub {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+
+  /* ---------- board ---------- */
+
+  .board {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  @media (min-width: 780px) {
+    .board { grid-template-columns: 1fr 1fr; }
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--card);
+    border: 1px solid var(--stroke);
+    border-radius: 26px;
+    padding: clamp(22px, 4vw, 28px);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .dir {
+    font-size: 15.5px;
+    font-weight: 650;
+    letter-spacing: -.01em;
+    line-height: 1.35;
+  }
+
+  .dir-arrow {
+    color: var(--faint);
+    font-weight: 400;
+    padding: 0 3px;
+  }
+
+  .dir-sub {
+    margin: 3px 0 20px;
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: .02em;
+  }
+
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .next {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 6px 0 2px;
+  }
+
+  .big {
+    font-size: clamp(84px, 15vw, 112px);
+    font-weight: 700;
+    line-height: .92;
+    letter-spacing: -.05em;
+    color: var(--big);
+    font-variant-numeric: tabular-nums;
+    transition: font-size .15s ease;
+  }
+
+  .big.is-due {
+    font-size: clamp(54px, 10vw, 72px);
+    letter-spacing: -.03em;
+  }
+
+  .big.is-none {
+    font-size: clamp(60px, 11vw, 80px);
+    color: var(--faint);
+  }
+
+  .unit {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: .01em;
+  }
+
+  .next-at {
+    min-height: 20px;
+    font-size: 13.5px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--stroke);
+    margin: 22px 0 18px;
+  }
+
+  .later {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .later li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .later li:last-child { border-bottom: 0; padding-bottom: 0; }
+
+  .later .mins {
+    font-size: 19px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .later .mins small {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  .later .time {
+    font-size: 13px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .03em;
+  }
+
+  .later .empty {
+    color: var(--muted);
+    font-size: 14px;
+    padding: 4px 0;
+  }
+
+  /* ---------- footer ---------- */
+
+  .foot {
+    padding: 0 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 0 0 var(--ok);
+    animation: pulse 2.4s ease-out infinite;
+  }
+
+  .dot.is-error {
+    background: var(--bad);
+    animation: none;
+  }
+
+  .dot.is-loading {
+    background: var(--faint);
+    animation: none;
+  }
+
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(61, 220, 151, .45); }
+    65%  { box-shadow: 0 0 0 7px rgba(61, 220, 151, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(61, 220, 151, 0); }
+  }
+
+  .bar {
+    height: 3px;
+    border-radius: 999px;
+    background: var(--track);
+    overflow: hidden;
+  }
+
+  .bar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transform-origin: left center;
+    transition: transform .25s linear;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  button {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--stroke);
+    border-radius: 999px;
+    padding: 6px 13px;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+  }
+
+  button:hover { background: rgba(127, 127, 127, .12); }
+  button:active { transform: translateY(.5px); }
+
+  .src {
+    margin: 0;
+    font-size: 11px;
+    color: var(--faint);
+    opacity: .85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dot { animation: none; }
+    .bar i { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="head">
+    <div class="route">
+      <span class="route-no">B3A</span>
+      <span class="route-co">Citybus</span>
+    </div>
+    <h1>Fu Tai Estate <span class="arrow">↔</span> Shenzhen Bay Port</h1>
+    <p class="sub">富泰邨 ↔ 深圳灣口岸</p>
+  </header>
+
+  <div class="board">
+    <!-- Fu Tai Estate -> Shenzhen Bay Port -->
+    <section class="card" aria-live="polite">
+      <div class="dir">Fu Tai Estate <span class="dir-arrow">→</span> Shenzhen Bay Port</div>
+      <p class="dir-sub">富泰邨 → 深圳灣口岸</p>
+
+      <div class="label">Next bus</div>
+      <div class="next">
+        <span id="o-big" class="big">–</span>
+        <span id="o-unit" class="unit">min</span>
+      </div>
+      <div id="o-at" class="next-at">Loading…</div>
+
+      <div class="divider"></div>
+
+      <div class="label">Following</div>
+      <ul id="o-later" class="later">
+        <li class="empty">Checking the timetable…</li>
+      </ul>
+    </section>
+
+    <!-- Shenzhen Bay Port -> Fu Tai Estate -->
+    <section class="card" aria-live="polite">
+      <div class="dir">Shenzhen Bay Port <span class="dir-arrow">→</span> Fu Tai Estate</div>
+      <p class="dir-sub">深圳灣口岸 → 富泰邨 · 經富泰商場</p>
+
+      <div class="label">Next departure</div>
+      <div class="next">
+        <span id="i-big" class="big">–</span>
+        <span id="i-unit" class="unit">min</span>
+      </div>
+      <div id="i-at" class="next-at">Loading…</div>
+
+      <div class="divider"></div>
+
+      <div class="label">Later departures</div>
+      <ul id="i-later" class="later">
+        <li class="empty">Checking the timetable…</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <div class="status">
+      <span id="dot" class="dot is-loading"></span>
+      <span id="statusText">Connecting to Citybus…</span>
+    </div>
+    <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+    <div class="meta">
+      <span id="updated">Not updated yet</span>
+      <button id="refresh" type="button">Refresh</button>
+    </div>
+    <p class="src">Real-time data: Citybus via DATA.GOV.HK</p>
+  </footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const ROUTE = "B3A";
+  const REFRESH_MS = 30000;
+  const BASE = "https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/";
+  const MAX_LATER = 2;
+
+  const $ = (id) => document.getElementById(id);
+  const dotEl = $("dot");
+  const statusEl = $("statusText");
+  const updatedEl = $("updated");
+  const barEl = $("bar");
+  const refreshBtn = $("refresh");
+
+  /**
+   * Two live boards:
+   *  - o: Fu Tai Estate (003261) -> Shenzhen Bay Port, dir O
+   *  - i: Shenzhen Bay Port (003208) -> Fu Tai Estate, dir I (terminus is Shan King Estate)
+   */
+  function makePanel(cfg) {
+    return Object.assign({}, cfg, {
+      buses: [],
+      loaded: false,
+      ui: {
+        big: $(cfg.key + "-big"),
+        unit: $(cfg.key + "-unit"),
+        at: $(cfg.key + "-at"),
+        later: $(cfg.key + "-later")
+      }
+    });
+  }
+
+  const panels = [
+    makePanel({
+      key: "o", stop: "003261", dir: "O",
+      dest: "Shenzhen Bay Port", verb: "Expected at"
+    }),
+    makePanel({
+      key: "i", stop: "003208", dir: "I",
+      dest: "Shan King Estate", verb: "Departs"
+    })
+  ];
+
+  let lastUpdated = null;
+  let lastAttempt = 0;
+  let nextRefresh = Date.now() + REFRESH_MS;
+  let loading = false;
+  let failed = false;
+  let loadedOnce = false;
+  let refreshTimer = null;
+
+  const two = (n) => String(n).padStart(2, "0");
+
+  function hkTime(date) {
+    try {
+      return new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Hong_Kong",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).format(date);
+    } catch {
+      return `${two(date.getHours())}:${two(date.getMinutes())}`;
+    }
+  }
+
+  function hkClock(date) {
+    try {
+      return new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Hong_Kong",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).format(date);
+    } catch {
+      return `${two(date.getHours())}:${two(date.getMinutes())}:${two(date.getSeconds())}`;
+    }
+  }
+
+  function laterRow(ms, eta) {
+    const li = document.createElement("li");
+    const mins = document.createElement("span");
+    mins.className = "mins";
+
+    if (ms < 60000) {
+      mins.textContent = "Due";
+    } else {
+      mins.textContent = Math.round(ms / 60000);
+      const small = document.createElement("small");
+      small.textContent = "min";
+      mins.append(small);
+    }
+
+    const time = document.createElement("span");
+    time.className = "time";
+    time.textContent = hkTime(eta);
+
+    li.append(mins, time);
+    return li;
+  }
+
+  function renderPanel(p, now) {
+    const { big, unit, at, later } = p.ui;
+
+    const upcoming = p.buses
+      .filter((b) => b.eta.getTime() > now - 15000)
+      .sort((a, b) => a.eta - b.eta);
+
+    if (upcoming.length) {
+      const next = upcoming[0];
+      const ms = next.eta.getTime() - now;
+
+      big.classList.remove("is-none");
+      if (ms < 60000) {
+        big.textContent = "Due";
+        big.classList.add("is-due");
+        unit.textContent = "now";
+      } else {
+        big.textContent = Math.round(ms / 60000);
+        big.classList.remove("is-due");
+        unit.textContent = "min";
+      }
+      at.textContent = `${p.verb} ${hkTime(next.eta)} HKT`;
+    } else {
+      big.textContent = "–";
+      big.classList.remove("is-due");
+      big.classList.remove("is-none");
+      if (p.loaded) big.classList.add("is-none");
+      unit.textContent = "";
+      at.textContent = p.loaded ? "No upcoming buses listed" : "Loading…";
+    }
+
+    const rest = upcoming.slice(1, 1 + MAX_LATER);
+    later.replaceChildren();
+
+    if (!p.loaded) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Checking the timetable…";
+      later.append(li);
+    } else if (!rest.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "No further buses listed";
+      later.append(li);
+    } else {
+      for (const bus of rest) {
+        later.append(laterRow(bus.eta.getTime() - now, bus.eta));
+      }
+    }
+  }
+
+  function render() {
+    const now = Date.now();
+
+    for (const p of panels) renderPanel(p, now);
+
+    dotEl.className = "dot";
+    if (failed) {
+      dotEl.classList.add("is-error");
+      statusEl.textContent = "Connection problem — retrying";
+    } else if (loading && !loadedOnce) {
+      dotEl.classList.add("is-loading");
+      statusEl.textContent = "Connecting to Citybus…";
+    } else {
+      statusEl.textContent = "Live · Citybus real-time feed";
+    }
+
+    updatedEl.textContent = lastUpdated
+      ? `Updated ${hkClock(lastUpdated)} HKT`
+      : "Not updated yet";
+
+    const remaining = Math.max(0, nextRefresh - now);
+    barEl.style.transform = `scaleX(${Math.min(1, remaining / REFRESH_MS)})`;
+  }
+
+  function schedule() {
+    clearTimeout(refreshTimer);
+    nextRefresh = Date.now() + REFRESH_MS;
+    refreshTimer = setTimeout(load, REFRESH_MS);
+  }
+
+  async function fetchPanel(p) {
+    const res = await fetch(`${BASE}${p.stop}/${ROUTE}?t=${Date.now()}`, {
+      cache: "no-store"
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const json = await res.json();
+    const rows = Array.isArray(json && json.data) ? json.data : [];
+    const seen = new Set();
+
+    return rows
+      .filter((r) =>
+        r && r.stop === p.stop && r.dir === p.dir && r.eta &&
+        String(r.dest_en || "").trim().toLowerCase() === p.dest.toLowerCase()
+      )
+      .map((r) => ({ eta: new Date(r.eta), seq: Number(r.eta_seq) || 0 }))
+      .filter((b) => !Number.isNaN(b.eta.getTime()) && b.eta.getTime() > Date.now() - 60000)
+      .filter((b) => {
+        const key = b.eta.getTime();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => a.eta - b.eta);
+  }
+
+  async function load() {
+    if (loading) return;
+    loading = true;
+    lastAttempt = Date.now();
+    render();
+
+    const results = await Promise.allSettled(panels.map(fetchPanel));
+    let okCount = 0;
+
+    results.forEach((result, i) => {
+      if (result.status === "fulfilled") {
+        panels[i].buses = result.value;
+        panels[i].loaded = true;
+        okCount++;
+      } else {
+        console.warn(`B3A ETA fetch failed (${panels[i].key}):`, result.reason);
+      }
+    });
+
+    if (okCount > 0) {
+      lastUpdated = new Date();
+      failed = false;
+      loadedOnce = true;
+    } else {
+      failed = true;
+    }
+
+    loading = false;
+    schedule();
+    render();
+  }
+
+  refreshBtn.addEventListener("click", () => {
+    if (!loading) load();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) return;
+    if (Date.now() - lastAttempt > REFRESH_MS) load();
+  });
+
+  setInterval(render, 1000);
+  render();
+  load();
+})();
+</script>
+</body>
+</html>
